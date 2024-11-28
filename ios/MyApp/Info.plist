@@ -48,5 +48,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+  <!-- Mapbox (https://rnmapbox.github.io/docs/install) -->
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>Show current location on map.</string>
 </dict>
 </plist>
