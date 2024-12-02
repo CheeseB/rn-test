@@ -15,21 +15,41 @@ Mapbox.setAccessToken(
   'sk.eyJ1IjoiY2hlZWVlZXNlYiIsImEiOiJjbTQwdXE4dGYyNzRpMm1zY2JyODd0cHRlIn0.EYPaTJH2ZjbO4xWFwYAvQw',
 );
 
+const INITIAL_COORDINATE = [127.0721445, 38.0979485];
+
+// calculate bearing between two coordinates
+const calculateBearing = (start: number[], end: number[]) => {
+  const startLat = (start[1] * Math.PI) / 180;
+  const startLng = (start[0] * Math.PI) / 180;
+  const endLat = (end[1] * Math.PI) / 180;
+  const endLng = (end[0] * Math.PI) / 180;
+
+  const x =
+    Math.cos(startLat) * Math.sin(endLat) -
+    Math.sin(startLat) * Math.cos(endLat) * Math.cos(endLng - startLng);
+  const y = Math.sin(endLng - startLng) * Math.cos(endLat);
+
+  return (Math.atan2(y, x) * 180) / Math.PI;
+};
+
 function App(): React.JSX.Element {
-  const [coordinate, setCoordinate] = useState([127.0721445, 38.0979485]);
-  const [pathCoordinates, setPathCoordinates] = useState([
-    [127.0721445, 38.0979485],
-  ]);
+  const [coordinate, setCoordinate] = useState(INITIAL_COORDINATE);
+  const [pathCoordinates, setPathCoordinates] = useState([INITIAL_COORDINATE]);
+  const [bearing, setBearing] = useState(0);
   const [isFollowing, setIsFollowing] = useState(true);
   const [isSatellite, setIsSatellite] = useState(true);
   const cameraRef = useRef(null);
 
   useEffect(() => {
+    // update coordinate randomly every 1 second
     const interval = setInterval(() => {
       const randomLng = coordinate[0] + Math.random() * 0.00002;
       const randomLat = coordinate[1] + Math.random() * 0.00005;
-
       const newCoordinate = [randomLng, randomLat];
+
+      const newBearing = calculateBearing(coordinate, newCoordinate);
+      setBearing(newBearing);
+
       setCoordinate(newCoordinate);
       setPathCoordinates(prev => [...prev, newCoordinate]);
     }, 1000);
@@ -115,6 +135,8 @@ function App(): React.JSX.Element {
                 iconImage: 'CursorMarker',
                 iconSize: 1,
                 iconAllowOverlap: true,
+                iconRotate: bearing,
+                iconRotationAlignment: 'map',
               }}
             />
           </ShapeSource>
