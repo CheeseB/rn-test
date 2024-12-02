@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useRef} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, View, TouchableOpacity, Text} from 'react-native';
 import Mapbox, {
   MapView,
   Camera,
@@ -21,6 +21,7 @@ function App(): React.JSX.Element {
     [127.0721445, 38.0979485],
   ]);
   const cameraRef = useRef(null);
+  const [isFollowing, setIsFollowing] = useState(true);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -30,6 +31,7 @@ function App(): React.JSX.Element {
       const newCoordinate = [randomLng, randomLat];
       setCoordinate(newCoordinate);
       setPathCoordinates(prev => [...prev, newCoordinate]);
+      console.log(newCoordinate);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -40,13 +42,16 @@ function App(): React.JSX.Element {
       <View style={styles.container}>
         <MapView
           style={styles.map}
-          styleURL="mapbox://styles/mapbox/satellite-v9">
-          <Camera
-            ref={cameraRef}
-            zoomLevel={18}
-            centerCoordinate={coordinate}
-            animationDuration={1000}
-          />
+          styleURL="mapbox://styles/mapbox/satellite-v9"
+          onTouchStart={() => setIsFollowing(false)}>
+          {isFollowing && (
+            <Camera
+              ref={cameraRef}
+              zoomLevel={18}
+              centerCoordinate={coordinate}
+              animationDuration={1000}
+            />
+          )}
 
           {/* Path lines */}
           <ShapeSource
@@ -84,6 +89,7 @@ function App(): React.JSX.Element {
             />
           </ShapeSource>
 
+          {/* Marker Icon */}
           <ShapeSource
             id="CursorMarker"
             shape={{
@@ -110,6 +116,13 @@ function App(): React.JSX.Element {
             />
           </ShapeSource>
         </MapView>
+
+        {/* Follow button */}
+        <TouchableOpacity
+          style={styles.followButton}
+          onPress={() => setIsFollowing(true)}>
+          <Text style={styles.buttonText}>{'follow'}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -127,6 +140,17 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+  },
+  followButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: 'white',
   },
 });
 
