@@ -20,8 +20,9 @@ function App(): React.JSX.Element {
   const [pathCoordinates, setPathCoordinates] = useState([
     [127.0721445, 38.0979485],
   ]);
-  const cameraRef = useRef(null);
   const [isFollowing, setIsFollowing] = useState(true);
+  const [isSatellite, setIsSatellite] = useState(true);
+  const cameraRef = useRef(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -31,7 +32,6 @@ function App(): React.JSX.Element {
       const newCoordinate = [randomLng, randomLat];
       setCoordinate(newCoordinate);
       setPathCoordinates(prev => [...prev, newCoordinate]);
-      console.log(newCoordinate);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -42,8 +42,9 @@ function App(): React.JSX.Element {
       <View style={styles.container}>
         <MapView
           style={styles.map}
-          styleURL="mapbox://styles/mapbox/satellite-v9"
+          styleURL={isSatellite ? 'mapbox://styles/mapbox/satellite-v9' : ''}
           onTouchStart={() => setIsFollowing(false)}>
+          {/* Following Camera */}
           {isFollowing && (
             <Camera
               ref={cameraRef}
@@ -69,6 +70,7 @@ function App(): React.JSX.Element {
                 },
               ],
             }}>
+            {/* back line */}
             <LineLayer
               id="pathLineBackground"
               style={{
@@ -78,6 +80,7 @@ function App(): React.JSX.Element {
                 lineCap: 'round',
               }}
             />
+            {/* front line */}
             <LineLayer
               id="pathLineForeground"
               style={{
@@ -117,11 +120,16 @@ function App(): React.JSX.Element {
           </ShapeSource>
         </MapView>
 
-        {/* Follow button */}
+        {/* buttons */}
         <TouchableOpacity
           style={styles.followButton}
           onPress={() => setIsFollowing(true)}>
           <Text style={styles.buttonText}>{'follow'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.toggleButton}
+          onPress={() => setIsSatellite(prev => !prev)}>
+          <Text style={styles.buttonText}>{'toggle map'}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -145,6 +153,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 10,
+    borderRadius: 5,
+  },
+  toggleButton: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     padding: 10,
     borderRadius: 5,
