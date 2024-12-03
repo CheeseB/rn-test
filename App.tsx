@@ -10,6 +10,8 @@ import Mapbox, {
 } from '@rnmapbox/maps';
 
 import MarkerIcon from './assets/Marker.png';
+import {calculateBearing} from './util';
+import {CameraRef} from '@rnmapbox/maps/lib/typescript/src/components/Camera';
 
 Mapbox.setAccessToken(
   'sk.eyJ1IjoiY2hlZWVlZXNlYiIsImEiOiJjbTQwdXE4dGYyNzRpMm1zY2JyODd0cHRlIn0.EYPaTJH2ZjbO4xWFwYAvQw',
@@ -17,29 +19,20 @@ Mapbox.setAccessToken(
 
 const INITIAL_COORDINATE = [127.0721445, 38.0979485];
 
-// calculate bearing between two coordinates
-const calculateBearing = (start: number[], end: number[]) => {
-  const startLat = (start[1] * Math.PI) / 180;
-  const startLng = (start[0] * Math.PI) / 180;
-  const endLat = (end[1] * Math.PI) / 180;
-  const endLng = (end[0] * Math.PI) / 180;
-
-  const x =
-    Math.cos(startLat) * Math.sin(endLat) -
-    Math.sin(startLat) * Math.cos(endLat) * Math.cos(endLng - startLng);
-  const y = Math.sin(endLng - startLng) * Math.cos(endLat);
-
-  return (Math.atan2(y, x) * 180) / Math.PI;
-};
-
 function App(): React.JSX.Element {
   const [coordinate, setCoordinate] = useState(INITIAL_COORDINATE);
   const [pathCoordinates, setPathCoordinates] = useState([INITIAL_COORDINATE]);
+
   const [bearing, setBearing] = useState(0);
+
   const [isFollowing, setIsFollowing] = useState(true);
   const [isSatellite, setIsSatellite] = useState(true);
   const [showLines, setShowLines] = useState(true);
-  const cameraRef = useRef(null);
+
+  const [markerA, setMarkerA] = useState<number[] | null>(null);
+  const [markerB, setMarkerB] = useState<number[] | null>(null);
+
+  const cameraRef = useRef<CameraRef | null>(null);
 
   useEffect(() => {
     // update coordinate randomly every 1 second
@@ -65,7 +58,7 @@ function App(): React.JSX.Element {
           style={styles.map}
           styleURL={isSatellite ? 'mapbox://styles/mapbox/satellite-v9' : ''}
           onTouchStart={() => setIsFollowing(false)}>
-          {/* Following Camera */}
+          {/* following Camera */}
           {isFollowing && (
             <Camera
               ref={cameraRef}
@@ -75,7 +68,7 @@ function App(): React.JSX.Element {
             />
           )}
 
-          {/* Path lines */}
+          {/* path lines */}
           <ShapeSource
             id="pathLine"
             shape={{
@@ -147,7 +140,7 @@ function App(): React.JSX.Element {
             </>
           )}
 
-          {/* Marker Icon */}
+          {/* center cursor icon */}
           <ShapeSource
             id="CursorMarker"
             shape={{
@@ -175,9 +168,73 @@ function App(): React.JSX.Element {
               }}
             />
           </ShapeSource>
+
+          {/* A/B button */}
+          <TouchableOpacity
+            style={styles.markerButton}
+            onPress={() => {
+              if (!markerA) {
+                setMarkerA(coordinate);
+              } else if (!markerB) {
+                setMarkerB(coordinate);
+              }
+            }}>
+            <Text style={styles.buttonText}>
+              {!markerA ? 'A' : !markerB ? 'B' : 'A/B Set'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* A/B markers */}
+          {markerA && (
+            <ShapeSource
+              id="markerA"
+              shape={{
+                type: 'Feature',
+                geometry: {
+                  type: 'Point',
+                  coordinates: markerA,
+                },
+                properties: {},
+              }}>
+              <SymbolLayer
+                id="markerALayer"
+                style={{
+                  textField: 'A',
+                  textSize: 20,
+                  textColor: 'red',
+                  textHaloColor: 'white',
+                  textHaloWidth: 2,
+                }}
+              />
+            </ShapeSource>
+          )}
+
+          {markerB && (
+            <ShapeSource
+              id="markerB"
+              shape={{
+                type: 'Feature',
+                geometry: {
+                  type: 'Point',
+                  coordinates: markerB,
+                },
+                properties: {},
+              }}>
+              <SymbolLayer
+                id="markerBLayer"
+                style={{
+                  textField: 'B',
+                  textSize: 20,
+                  textColor: 'blue',
+                  textHaloColor: 'white',
+                  textHaloWidth: 2,
+                }}
+              />
+            </ShapeSource>
+          )}
         </MapView>
 
-        {/* buttons */}
+        {/* toggle buttons */}
         <TouchableOpacity
           style={styles.followButton}
           onPress={() => setIsFollowing(true)}>
@@ -233,6 +290,14 @@ const styles = StyleSheet.create({
   toggleLinesButton: {
     position: 'absolute',
     bottom: 60,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 10,
+    borderRadius: 5,
+  },
+  markerButton: {
+    position: 'absolute',
+    bottom: 100,
     right: 20,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     padding: 10,
