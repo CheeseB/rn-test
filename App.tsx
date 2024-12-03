@@ -38,6 +38,7 @@ function App(): React.JSX.Element {
   const [bearing, setBearing] = useState(0);
   const [isFollowing, setIsFollowing] = useState(true);
   const [isSatellite, setIsSatellite] = useState(true);
+  const [showLines, setShowLines] = useState(true);
   const cameraRef = useRef(null);
 
   useEffect(() => {
@@ -112,6 +113,40 @@ function App(): React.JSX.Element {
             />
           </ShapeSource>
 
+          {/* interval lines */}
+          {showLines && (
+            <>
+              {[...Array(5)].map((_, index) => {
+                const percentage = index - 2; // -2, -1, 0, 1, 2
+                return (
+                  <ShapeSource
+                    key={`line-${index}`}
+                    id={`verticalLine-${index}`}
+                    shape={{
+                      type: 'Feature',
+                      geometry: {
+                        type: 'LineString',
+                        coordinates: [
+                          [INITIAL_COORDINATE[0] + percentage * 0.0001, -90],
+                          [INITIAL_COORDINATE[0] + percentage * 0.0001, 90],
+                        ],
+                      },
+                      properties: {},
+                    }}>
+                    <LineLayer
+                      id={`verticalLineLayer-${index}`}
+                      style={{
+                        lineColor: index === 2 ? 'red' : 'white',
+                        lineWidth: 1,
+                        lineOpacity: 0.8,
+                      }}
+                    />
+                  </ShapeSource>
+                );
+              })}
+            </>
+          )}
+
           {/* Marker Icon */}
           <ShapeSource
             id="CursorMarker"
@@ -153,6 +188,11 @@ function App(): React.JSX.Element {
           onPress={() => setIsSatellite(prev => !prev)}>
           <Text style={styles.buttonText}>{'toggle map'}</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.toggleLinesButton}
+          onPress={() => setShowLines(prev => !prev)}>
+          <Text style={styles.buttonText}>{'toggle lines'}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -189,6 +229,14 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: 'white',
+  },
+  toggleLinesButton: {
+    position: 'absolute',
+    bottom: 60,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 10,
+    borderRadius: 5,
   },
 });
 
