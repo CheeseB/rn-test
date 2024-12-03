@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useRef} from 'react';
 import {StyleSheet, View, TouchableOpacity, Text} from 'react-native';
-import Mapbox, {
+import {
   MapView,
   Camera,
   ShapeSource,
@@ -12,10 +12,6 @@ import Mapbox, {
 import MarkerIcon from './assets/Marker.png';
 import {calculateBearing} from './util';
 import {CameraRef} from '@rnmapbox/maps/lib/typescript/src/components/Camera';
-
-Mapbox.setAccessToken(
-  'sk.eyJ1IjoiY2hlZWVlZXNlYiIsImEiOiJjbTQwdXE4dGYyNzRpMm1zY2JyODd0cHRlIn0.EYPaTJH2ZjbO4xWFwYAvQw',
-);
 
 const INITIAL_COORDINATE = [127.0721445, 38.0979485];
 
